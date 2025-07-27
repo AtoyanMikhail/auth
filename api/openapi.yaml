@@ -1,0 +1,157 @@
+openapi: 3.0.0
+info:
+  title: Authentication Service API
+  version: 1.0.0
+  description: |
+    Сервис аутентификации
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+
+paths:
+  /tokens:
+    post:
+      summary: Получение пары токенов
+      description: Генерация access и refresh токенов для указанного пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+            example:
+              guid: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Успешная генерация токенов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+              example:
+                access_token: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAiLCJleHAiOjE2MDAwMDAwMDB9.4kYlFJQZ5v8lZ7Kx7X7Yn7Z8d7D0lWzL7Yn7Z8d7D0lWzL7Yn7Z8d7D0lWzL"
+                refresh_token: "djJ8fHx8MjAyMy0wOS0yOVQxMjowMDowMHx8fHw="
+        '400':
+          description: Невалидный GUID
+        '500':
+          description: Ошибка сервера
+
+  /tokens/refresh:
+    post:
+      summary: Обновление пары токенов
+      description: |
+        Обновление access и refresh токенов.
+        Требования:
+        - Проверка User-Agent (при несовпадении - деавторизация)
+        - При новом IP отправляется вебхук
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+            example:
+              refresh_token: "djJ8fHx8MjAyMy0wOS0yOVQxMjowMDowMHx8fHw="
+      responses:
+        '200':
+          description: Токены успешно обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '400':
+          description: Невалидный токен
+        '401':
+          description: |
+            - Неверная пара токенов
+            - Обнаружена подозрительная активность (User-Agent)
+        '403':
+          description: Токен отозван
+        '500':
+          description: Ошибка сервера
+
+  /me:
+    get:
+      summary: Получение GUID текущего пользователя
+      description: Защищенный роут, требует валидный access token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGUID'
+              example:
+                guid: "550e8400-e29b-41d4-a716-446655440000"
+        '401':
+          description: Невалидный или отсутствующий токен
+        '403':
+          description: Токен отозван
+        '500':
+          description: Ошибка сервера
+
+  /logout:
+    post:
+      summary: Деавторизация пользователя
+      description: Инвалидация текущей сессии пользователя
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешная деавторизация
+        '401':
+          description: Невалидный токен
+        '500':
+          description: Ошибка сервера
+
+components:
+  schemas:
+    TokenRequest:
+      type: object
+      required:
+        - guid
+      properties:
+        guid:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    RefreshRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          description: Refresh токен в формате base64
+          example: "djJ8fHx8MjAyMy0wOS0yOVQxMjowMDowMHx8fHw="
+
+    TokenPair:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT токен 
+        refresh_token:
+          type: string
+          description: Refresh токен в base64
+
+    UserGUID:
+      type: object
+      properties:
+        guid:
+          type: string
+          format: uuid
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Access token в формате JWT. Пример:
+        `Authorization: Bearer eyJhbGciOiJIUzUxMi...`

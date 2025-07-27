@@ -1,0 +1,31 @@
+{
+    "server": {
+        "port": "8080",
+        "host": "0.0.0.0",
+        "read_timeout": "30s",
+        "write_timeout": "30s"
+    },
+    "database": {
+        "host": "localhost",
+        "port": "5432",
+        "user": "postgres",
+        "password": "password",
+        "db_name": "jwt",
+        "ssl_mode": "disable"
+    },
+    "redis": {
+        "addr": "localhost:6379",
+        "password": "",
+        "db": 0,
+        "ttl": "1h"
+    },
+    "jwt": {
+        "access_token_ttl": "2m",
+        "refresh_token_ttl": "168h",
+        "secret_key": "secret_key"
+    },
+    "webhook": {
+        "url": "",
+        "timeout": "5s"
+    }
+}
