@@ -13,3 +13,4 @@ type RefreshToken struct {
 	IsUsed    bool      `db:"is_used" json:"is_used"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
+

@@ -21,7 +21,7 @@ type refreshTokenRepo struct {
 	cfg config.DatabaseConfig
 }
 
-func NewRefreshTokenRepository(cfg config.DatabaseConfig, l logger.Logger) (RefreshTokenRepository, error) {
+func NewRefreshTokenRepository(cfg config.DatabaseConfig, l logger.Logger) (models.RefreshTokenRepository, error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Host,
